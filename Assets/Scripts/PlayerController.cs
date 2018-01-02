@@ -67,7 +67,7 @@ public class PlayerController : MonoBehaviour
 
         rgdBody.MovePosition(rgdBody.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
     }
-    float prevSurfDist;
+
     private void SurfaceContactInfo()
     {
         Vector3 raydirect = (planet.position - transform.position).normalized;
@@ -77,14 +77,15 @@ public class PlayerController : MonoBehaviour
         float dist = Vector3.Distance(transform.position, planet.position);
         if (Physics.Raycast(ray, out hit, dist, groundedMask))
         {
-            float currSurfDist = Vector3.Distance(hit.point, transform.position);
-            if (currSurfDist < 1.1f)
+            float surfDist = Vector3.Distance(hit.point, transform.position);
+            if (surfDist < GetComponent<CapsuleCollider>().height * 0.7f)
+            {
                 grounded = true;
-            if (prevSurfDist - currSurfDist < 0.2f)
-                rgdBody.MovePosition(rgdBody.position);
-            prevSurfDist = currSurfDist;
+            }
         }
         Quaternion targetRotation = Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation;
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2);
+        gravityBody.gravitDirection = hit.normal;
     }
+
 }

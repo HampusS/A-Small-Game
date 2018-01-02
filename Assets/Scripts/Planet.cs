@@ -37,9 +37,8 @@ public class Planet : MonoBehaviour
             SetTerrain();
     }
 
-    public void Attract(Transform target, float gravityMultiplier)
+    public void Attract(Rigidbody target, float gravityMultiplier, Vector3 direction)
     {
-        Vector3 normal = (target.position - transform.position).normalized;
-        target.GetComponent<Rigidbody>().AddForce(normal * gravity * gravityMultiplier);
+        target.AddForce(direction * gravity * gravityMultiplier);
     }
 }
