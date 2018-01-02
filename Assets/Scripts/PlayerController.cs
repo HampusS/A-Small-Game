@@ -11,8 +11,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     float jumpForce = 300;
     [SerializeField]
+    Transform planet;
+    [SerializeField]
     float sensX = 5, sensY = 5;
-    float x, y;
     float startGravMult;
     Transform cam;
 
@@ -35,11 +36,6 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         float h = Input.GetAxis("Mouse X");
-        float v = Input.GetAxis("Mouse Y");
-        x += (h * sensX);
-        y += (v * sensY);
-        y = Mathf.Clamp(y, -60, 60);
-        cam.localEulerAngles = Vector3.left * y;
         transform.Rotate(Vector3.up * h * sensX);
 
         Vector3 direction = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
@@ -51,17 +47,14 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        rgdBody.MovePosition(rgdBody.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+        SurfaceContactInfo();
+
         gravityBody.gravityMultiplier = startGravMult;
-
-        Ray ray = new Ray(transform.position, -transform.up);
-        RaycastHit hit;
-        grounded = false;
-        if (Physics.Raycast(ray, out hit, 1.1f, groundedMask))
-            grounded = true;
-
+        GetComponent<Renderer>().material.color = Color.green;
         if (!grounded)
         {
+            GetComponent<Renderer>().material.color = Color.red;
+
             if (rgdBody.velocity.y < 0)
             {
                 gravityBody.gravityMultiplier = startGravMult * 2;
@@ -71,5 +64,27 @@ public class PlayerController : MonoBehaviour
                 gravityBody.gravityMultiplier = startGravMult * 3;
             }
         }
+
+        rgdBody.MovePosition(rgdBody.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+    }
+    float prevSurfDist;
+    private void SurfaceContactInfo()
+    {
+        Vector3 raydirect = (planet.position - transform.position).normalized;
+        Ray ray = new Ray(transform.position, raydirect);
+        RaycastHit hit;
+        grounded = false;
+        float dist = Vector3.Distance(transform.position, planet.position);
+        if (Physics.Raycast(ray, out hit, dist, groundedMask))
+        {
+            float currSurfDist = Vector3.Distance(hit.point, transform.position);
+            if (currSurfDist < 1.1f)
+                grounded = true;
+            if (prevSurfDist - currSurfDist < 0.2f)
+                rgdBody.MovePosition(rgdBody.position);
+            prevSurfDist = currSurfDist;
+        }
+        Quaternion targetRotation = Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation;
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2);
     }
 }

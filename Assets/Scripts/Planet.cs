@@ -40,9 +40,6 @@ public class Planet : MonoBehaviour
     public void Attract(Transform target, float gravityMultiplier)
     {
         Vector3 normal = (target.position - transform.position).normalized;
-        Vector3 localUp = target.up;
         target.GetComponent<Rigidbody>().AddForce(normal * gravity * gravityMultiplier);
-        Quaternion targetRotation = Quaternion.FromToRotation(localUp, normal) * target.rotation;
-        target.rotation = Quaternion.Slerp(target.rotation, targetRotation, 100);
     }
 }
