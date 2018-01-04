@@ -4,12 +4,13 @@ public class GravityBody : MonoBehaviour
 {
     public Planet source;
     public float gravityMultiplier { get; set; }
-    public Vector3 gravitDirection { get; set; }
+    public Vector3 gravityDirection { get; set; }
     Rigidbody rgdbody;
     // Use this for initialization
     void Awake()
     {
-        source = GameObject.FindGameObjectWithTag("Planet").GetComponent<Planet>();
+        if (source == null)
+            source = GameObject.FindGameObjectWithTag("Planet").GetComponent<Planet>();
         rgdbody = GetComponent<Rigidbody>();
         rgdbody.useGravity = false;
         rgdbody.constraints = RigidbodyConstraints.FreezeRotation;
@@ -19,6 +20,6 @@ public class GravityBody : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        source.Attract(rgdbody, gravityMultiplier, gravitDirection);
+        source.Attract(rgdbody, gravityMultiplier, gravityDirection);
     }
 }

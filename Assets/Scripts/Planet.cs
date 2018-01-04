@@ -7,13 +7,13 @@ public class Planet : MonoBehaviour
     public float smoothness = 1;
     MeshCollider meshCollider;
 
-    private void Start()
+    void Start()
     {
         meshCollider = gameObject.AddComponent<MeshCollider>();
         SetTerrain();
     }
 
-    private void SetTerrain()
+    void SetTerrain()
     {
         Mesh mesh = GetComponent<MeshFilter>().mesh;
         Vector3[] vertices = mesh.vertices;
@@ -29,9 +29,10 @@ public class Planet : MonoBehaviour
         mesh.vertices = vertices;
         DestroyImmediate(meshCollider);
         meshCollider = gameObject.AddComponent<MeshCollider>();
+        mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 2000);
     }
 
-    public void FixedUpdate()
+    void Update()
     {
         if (Input.GetKeyDown(KeyCode.Return))
             SetTerrain();

@@ -13,9 +13,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     Transform planet;
     [SerializeField]
-    float sensX = 5, sensY = 5;
+    float sensX = 0.005f;
     float startGravMult;
-    Transform cam;
 
     bool grounded;
     Vector3 moveAmount;
@@ -26,7 +25,6 @@ public class PlayerController : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        cam = Camera.main.transform;
         rgdBody = GetComponent<Rigidbody>();
         gravityBody = GetComponent<GravityBody>();
         startGravMult = gravityBody.gravityMultiplier;
@@ -35,36 +33,33 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float h = Input.GetAxis("Mouse X");
-        transform.Rotate(Vector3.up * h * sensX);
+        transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * sensX);
+        Vector3 strafe = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
+        moveAmount = Vector3.SmoothDamp(moveAmount, strafe * speed, ref smoothMove, .15f);
 
-        Vector3 direction = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
-        moveAmount = Vector3.SmoothDamp(moveAmount, direction * speed, ref smoothMove, .15f);
+
+        GetComponent<Renderer>().material.color = Color.red;
 
         if (grounded && Input.GetButtonDown("Jump"))
             rgdBody.AddForce(transform.up * jumpForce);
+        else if (grounded)
+            GetComponent<Renderer>().material.color = Color.green;
+
+        SurfaceContactInfo();
     }
 
     void FixedUpdate()
     {
-        SurfaceContactInfo();
-
         gravityBody.gravityMultiplier = startGravMult;
-        GetComponent<Renderer>().material.color = Color.green;
-        if (!grounded)
+
+        if (rgdBody.velocity.y < 0)
         {
-            GetComponent<Renderer>().material.color = Color.red;
-
-            if (rgdBody.velocity.y < 0)
-            {
-                gravityBody.gravityMultiplier = startGravMult * 2;
-            }
-            else if (rgdBody.velocity.y > 0 && !Input.GetButton("Jump"))
-            {
-                gravityBody.gravityMultiplier = startGravMult * 3;
-            }
+            gravityBody.gravityMultiplier = startGravMult * 2;
         }
-
+        else if (rgdBody.velocity.y > 0 && !Input.GetButton("Jump"))
+        {
+            gravityBody.gravityMultiplier = startGravMult * 3;
+        }
         rgdBody.MovePosition(rgdBody.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
     }
 
@@ -74,18 +69,22 @@ public class PlayerController : MonoBehaviour
         Ray ray = new Ray(transform.position, raydirect);
         RaycastHit hit;
         grounded = false;
-        float dist = Vector3.Distance(transform.position, planet.position);
-        if (Physics.Raycast(ray, out hit, dist, groundedMask))
+        float rayLength = Vector3.Distance(transform.position, planet.position);
+        if (Physics.Raycast(ray, out hit, rayLength, groundedMask))
         {
             float surfDist = Vector3.Distance(hit.point, transform.position);
-            if (surfDist < GetComponent<CapsuleCollider>().height * 0.7f)
+            if (surfDist < GetComponent<CapsuleCollider>().height * 0.8f)
             {
+                rgdBody.position = (hit.normal * (hit.point.magnitude + (GetComponent<CapsuleCollider>().height * 0.5f)));
                 grounded = true;
+                gravityBody.gravityMultiplier = 0;
+                rgdBody.velocity = Vector3.zero;
             }
         }
+
         Quaternion targetRotation = Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation;
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2);
-        gravityBody.gravitDirection = hit.normal;
+        gravityBody.gravityDirection = hit.normal;
     }
 
 }
