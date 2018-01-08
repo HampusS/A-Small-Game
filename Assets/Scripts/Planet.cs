@@ -4,7 +4,9 @@ public class Planet : MonoBehaviour
 {
     public float gravity = -9.8f;
     public float sizeMultiplier = 1;
-    public float smoothness = 1;
+    [Range(0, 1)]
+    public float smoothMultiplier = 0.5f;
+    float smoothness = 1;
     MeshCollider meshCollider;
 
     void Start()
@@ -15,6 +17,7 @@ public class Planet : MonoBehaviour
 
     void SetTerrain()
     {
+        smoothness = sizeMultiplier * (smoothMultiplier + 1);
         Mesh mesh = GetComponent<MeshFilter>().mesh;
         Vector3[] vertices = mesh.vertices;
         float offsetX = Random.Range(0.0f, 1.0f);
@@ -30,6 +33,11 @@ public class Planet : MonoBehaviour
         DestroyImmediate(meshCollider);
         meshCollider = gameObject.AddComponent<MeshCollider>();
         mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 2000);
+        int index = Random.Range(0, mesh.vertices.Length);
+        Vector3 vect = mesh.vertices[index];
+        GameObject.FindGameObjectWithTag("Player").GetComponent<GravityBody>().SetPosition(vect);
+        GameObject.FindGameObjectWithTag("Player").GetComponent<GravityBody>().Rotate(vect - transform.position);
+        GameObject.FindGameObjectWithTag("Player").GetComponent<GravityBody>().Align(mesh.normals[index], 0.5f);
     }
 
     void Update()
