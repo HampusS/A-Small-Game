@@ -6,6 +6,8 @@ public class GravityBody : MonoBehaviour
     public float gravityMultiplier { get; set; }
     public Vector3 gravityDirection { get; set; }
     Rigidbody rgdbody;
+    bool grounded;
+    RaycastHit hit;
 
     // Use this for initialization
     void Awake()
@@ -17,8 +19,7 @@ public class GravityBody : MonoBehaviour
         rgdbody.constraints = RigidbodyConstraints.FreezeRotation;
         gravityMultiplier = 1;
     }
-
-    // Update is called once per frame
+    
     void FixedUpdate()
     {
         source.Attract(rgdbody, gravityMultiplier, gravityDirection);
@@ -38,4 +39,5 @@ public class GravityBody : MonoBehaviour
     {
         transform.position += direction * (GetComponent<CapsuleCollider>().height * amount);
     }
+
 }

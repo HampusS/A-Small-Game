@@ -8,8 +8,12 @@ public class Planet : MonoBehaviour
     public float smoothMultiplier = 0.5f;
     float smoothness = 1;
     MeshCollider meshCollider;
+    Mesh mesh;
 
-    void Start()
+    [SerializeField]
+    GravityBody[] worldBodies;
+
+    void Awake()
     {
         meshCollider = gameObject.AddComponent<MeshCollider>();
         SetTerrain();
@@ -18,7 +22,7 @@ public class Planet : MonoBehaviour
     void SetTerrain()
     {
         smoothness = sizeMultiplier * (smoothMultiplier + 1);
-        Mesh mesh = GetComponent<MeshFilter>().mesh;
+        mesh = GetComponent<MeshFilter>().mesh;
         Vector3[] vertices = mesh.vertices;
         float offsetX = Random.Range(0.0f, 1.0f);
         float offsetY = Random.Range(0.0f, 1.0f);
@@ -33,18 +37,35 @@ public class Planet : MonoBehaviour
         DestroyImmediate(meshCollider);
         meshCollider = gameObject.AddComponent<MeshCollider>();
         mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 2000);
-        int index = Random.Range(0, mesh.vertices.Length);
-        Vector3 vect = mesh.vertices[index];
-        GameObject.FindGameObjectWithTag("Player").GetComponent<GravityBody>().SetPosition(vect);
-        GameObject.FindGameObjectWithTag("Player").GetComponent<GravityBody>().Rotate(vect - transform.position);
-        GameObject.FindGameObjectWithTag("Player").GetComponent<GravityBody>().Align(mesh.normals[index], 0.5f);
+
+        foreach (GravityBody body in worldBodies)
+        {
+            PlaceObject(body, 0.5f);
+        }
     }
 
-    void Update()
+    public void PlaceObject(GravityBody body, float distance)
     {
-        if (Input.GetKeyDown(KeyCode.Return))
-            SetTerrain();
+        int index = Random.Range(0, mesh.vertices.Length);
+        Vector3 vect = mesh.vertices[index];
+        body.SetPosition(vect);
+        body.Rotate(vect - transform.position);
+        body.Align(mesh.normals[index], distance);
     }
+
+    //void Update()
+    //{
+    //    if (Input.GetKeyDown(KeyCode.Return))
+    //    {
+    //        SetTerrain();
+
+    //        MoleSpawner find = FindObjectOfType<MoleSpawner>();
+    //        foreach (GameObject mole in find.Moles())
+    //        {
+    //            PlaceObject(mole.GetComponent<GravityBody>(), 0);
+    //        }
+    //    }
+    //}
 
     public void Attract(Rigidbody target, float gravityMultiplier, Vector3 direction)
     {

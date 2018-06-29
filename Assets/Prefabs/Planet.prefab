@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 33834329690857748}
   - component: {fileID: 23964553145871614}
   - component: {fileID: 114795890112887540}
+  - component: {fileID: 114693721047461680}
   m_Layer: 8
   m_Name: Planet
   m_TagString: Planet
@@ -37,7 +38,7 @@ Transform:
   m_GameObject: {fileID: 1327698638000102}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 25, y: 25, z: 25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -55,6 +56,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RenderingLayerMask: 4294967295
   m_Materials:
   - {fileID: 2100000, guid: f77b8c665404c224094c800320ba38c1, type: 2}
   m_StaticBatchInfo:
@@ -83,6 +85,20 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1327698638000102}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &114693721047461680
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1327698638000102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fd41d0953fd4bb4b888f78ac99e4383, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mole: {fileID: 1421395975296806, guid: a9da40e9871129845a4201d48027c510, type: 2}
+  amount: 10
+  planet: {fileID: 114795890112887540}
 --- !u!114 &114795890112887540
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -95,5 +111,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gravity: -9.8
-  sizeMultiplier: 1.5
-  smoothness: 2.5
+  sizeMultiplier: 35
+  smoothMultiplier: 0.746
+  worldBodies:
+  - {fileID: 0}
