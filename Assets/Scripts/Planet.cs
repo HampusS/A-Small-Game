@@ -53,19 +53,19 @@ public class Planet : MonoBehaviour
         body.Align(mesh.normals[index], distance);
     }
 
-    //void Update()
-    //{
-    //    if (Input.GetKeyDown(KeyCode.Return))
-    //    {
-    //        SetTerrain();
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            SetTerrain();
 
-    //        MoleSpawner find = FindObjectOfType<MoleSpawner>();
-    //        foreach (GameObject mole in find.Moles())
-    //        {
-    //            PlaceObject(mole.GetComponent<GravityBody>(), 0);
-    //        }
-    //    }
-    //}
+            MoleSpawner find = FindObjectOfType<MoleSpawner>();
+            foreach (GameObject mole in find.Moles())
+            {
+                PlaceObject(mole.GetComponent<GravityBody>(), 0);
+            }
+        }
+    }
 
     public void Attract(Rigidbody target, float gravityMultiplier, Vector3 direction)
     {

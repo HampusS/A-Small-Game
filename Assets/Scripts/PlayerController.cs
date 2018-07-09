@@ -29,19 +29,23 @@ public class PlayerController : MonoBehaviour
     float swing_timer;
     bool swinging_hammer;
     bool cooldown_swing;
+    public bool shake_cam { get; set; }
 
     [SerializeField]
     Collider hammer;
 
-    public float Score { get; set; }
-    public float ChainScore { get; set; }
-    float chain_timer, chain_limit = 6;
+    [SerializeField]
+    Animator animator;
+
+    GameManager game_manager;
     
     void Start()
     {
         rgdBody = GetComponent<Rigidbody>();
         gravityBody = GetComponent<GravityBody>();
         height = GetComponent<CapsuleCollider>().height;
+        Cursor.lockState = CursorLockMode.Locked;
+        game_manager = FindObjectOfType<GameManager>();
     }
 
     // Update is called once per frame
@@ -49,9 +53,15 @@ public class PlayerController : MonoBehaviour
     {
         if (!stop_moving)
         {
+
             float angle = Input.GetAxis("Mouse X") * Time.deltaTime;
             transform.Rotate(Vector3.up, angle * 200);
             Vector3 strafe = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
+            if (strafe != Vector3.zero)
+                animator.SetTrigger("Moving");
+            else
+                animator.ResetTrigger("Moving");
+
             strafe = new Vector3(strafe.x * 0.5f, 0, strafe.z);
             if (strafe.z < 0)
                 strafe *= 0.25f;
@@ -59,16 +69,9 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space))
                 rgdBody.AddForce(transform.up * 200);
         }
-        Debug.Log(rgdBody.velocity);
 
         SurfaceContactInfo();
         SwingHammer();
-        chain_timer += Time.deltaTime;
-        if (chain_timer > chain_limit)
-        {
-            ChainScore = 0;
-            FindObjectOfType<ScoreManager>().SetChain("0");
-        }
     }
 
     void FixedUpdate()
@@ -105,12 +108,14 @@ public class PlayerController : MonoBehaviour
 
     void SwingHammer()
     {
-        if (!swinging_hammer && !cooldown_swing && Input.GetMouseButtonDown(0))
+        if (!swinging_hammer && Input.GetMouseButtonDown(0))
         {
             swinging_hammer = true;
             hammer.gameObject.SetActive(true);
             stop_moving = true;
             moveAmount = Vector3.zero;
+            animator.SetTrigger("Swing");
+            animator.ResetTrigger("Idle");
         }
         else if (swinging_hammer)
         {
@@ -118,29 +123,19 @@ public class PlayerController : MonoBehaviour
             if (swing_timer >= cooldown)
             {
                 swing_timer = 0;
-                cooldown_swing = true;
                 swinging_hammer = false;
                 stop_moving = false;
                 hammer.gameObject.SetActive(false);
+                animator.SetTrigger("Idle");
+                animator.ResetTrigger("Swing");
+                game_manager.PauseTimer = false;
             }
         }
-        else if (cooldown_swing)
-        {
-            swing_time += Time.deltaTime;
-            if (swing_time >= cooldown)
-            {
-                cooldown_swing = false;
-                swing_time = 0;
-            }
-        }
-
-
     }
 
-    public void ChainScores()
+    public void HammerImpact()
     {
-        ChainScore++;
-        chain_timer = 0;
+        shake_cam = true;
     }
 
 }

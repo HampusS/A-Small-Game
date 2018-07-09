@@ -7,6 +7,11 @@ public class SmartCam : MonoBehaviour {
     Transform target, rotationPivot;
     [SerializeField]
     float verticalStrength = 0.1f;
+
+    [SerializeField]
+    Animator animator;
+    PlayerController player;
+
     public float height = 5;
     public float length = 10;
     float follow_strength = 2;
@@ -17,6 +22,7 @@ public class SmartCam : MonoBehaviour {
             target = GameObject.FindGameObjectWithTag("Player").transform;
             rotationPivot = target.GetChild(0).transform;
         }
+        player = target.GetComponent<PlayerController>();
 	}
 	
 	// Update is called once per frame
@@ -28,5 +34,19 @@ public class SmartCam : MonoBehaviour {
         float rotation_strength = (Time.deltaTime * angle) * verticalStrength;
         transform.rotation = Quaternion.Lerp(transform.rotation, rotationPivot.rotation, rotation_strength);
         //ROTATE UP AND DOWN //transform.Rotate(Vector3.right, -Input.GetAxis("Mouse Y") * 0.5f);
+
+        if (player.shake_cam)
+            ShakeCamera();
+    }
+
+    public void ShakeCamera()
+    {
+        animator.SetTrigger("Shake");
+    }
+
+    public void ResetCamera()
+    {
+        animator.ResetTrigger("Shake");
+        player.shake_cam = false;
     }
 }

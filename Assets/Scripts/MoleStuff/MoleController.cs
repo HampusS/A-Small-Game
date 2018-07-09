@@ -2,62 +2,81 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MoleController : MonoBehaviour {
-    [SerializeField]
-    float dig_time;
-    [SerializeField]
-    float bounty;
+public class MoleController : MonoBehaviour
+{
     Planet planet;
 
     bool ready;
     float timer;
-    ScoreManager score_manager;
+    GameManager game_manager;
+
+    [SerializeField]
+    Animator animator;
+    CapsuleCollider collider;
 
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         planet = GameObject.FindGameObjectWithTag("Planet").GetComponent<Planet>();
         ready = false;
-        timer = Random.Range(-dig_time, dig_time);
-        score_manager = FindObjectOfType<ScoreManager>();
+        game_manager = FindObjectOfType<GameManager>();
+        timer = Random.Range(-game_manager.SurfaceTime, game_manager.SurfaceTime);
+        collider = GetComponent<CapsuleCollider>();
     }
 
-    void Update () {
-        DigUp();
-	}
+    void Update()
+    {
+        StayUp();
+    }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (ready && other.transform.tag == "Hammer")
+        if (other.transform.tag == "Hammer")
         {
-            GotHit(other.transform.parent.gameObject);
+            GotHit();
         }
     }
 
-    public void GotHit(GameObject player)
+    public void InitializeBunny()
+    {
+        animator.ResetTrigger("Down");
+        animator.ResetTrigger("Smashed");
+        collider.enabled = true;
+    }
+
+    public void GotHit()
+    {
+        game_manager.AddHit();
+        game_manager.IncreaseDifficulty();
+        animator.SetTrigger("Smashed");
+        collider.enabled = false;
+    }
+
+    public void ResetBunny()
     {
         planet.PlaceObject(GetComponent<GravityBody>(), 0);
+        timer = Random.Range(game_manager.SurfaceTime * 0.25f, game_manager.SurfaceTime + 0.05f);
+        animator.ResetTrigger("Down");
+        animator.ResetTrigger("Smashed");
         ready = false;
-        timer = Random.Range(-dig_time, dig_time * 0.5f);
-
-        //START DIGGING ANIMATION
-        PlayerController player_control = player.GetComponent<PlayerController>();
-        player_control.Score += bounty + (player_control.ChainScore * bounty);
-        player_control.ChainScores();
-        score_manager.SetScore(player_control.Score.ToString());
-        score_manager.SetChain(player_control.ChainScore.ToString());
     }
 
-    void DigUp()
+    void StayUp()
     {
-        if (!ready)
+        if (ready)
         {
             timer += Time.deltaTime;
-            if (timer >= dig_time)
+            if (timer >= game_manager.SurfaceTime)
             {
+                animator.SetTrigger("Down");
                 timer = 0;
-                ready = true;
             }
         }
+    }
+
+    public void StartDigDown()
+    {
+        ready = true;
     }
 
 }
