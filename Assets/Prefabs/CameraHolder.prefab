@@ -20,6 +20,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4282834636525656}
   - component: {fileID: 114375776354970950}
+  - component: {fileID: 95680742915606834}
   m_Layer: 0
   m_Name: CameraHolder
   m_TagString: Untagged
@@ -81,7 +82,7 @@ Camera:
   m_GameObject: {fileID: 1564211860256112}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
+  m_ClearFlags: 2
   m_BackGroundColor: {r: 0.5028114, g: 0.6618488, b: 0.9117647, a: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
@@ -123,6 +124,24 @@ Behaviour:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1564211860256112}
   m_Enabled: 1
+--- !u!95 &95680742915606834
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1003853973364088}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 09b6d2dc71542c545ae5cdd5841d47fb, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!114 &114375776354970950
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -136,9 +155,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 0}
   rotationPivot: {fileID: 0}
-  verticalStrength: 0.1
-  height: 8
-  length: 3
+  verticalStrength: 0.6
+  animator: {fileID: 95680742915606834}
+  height: 5
+  length: 0.5
 --- !u!124 &124161299864109778
 Behaviour:
   m_ObjectHideFlags: 1

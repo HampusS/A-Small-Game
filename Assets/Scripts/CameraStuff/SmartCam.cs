@@ -12,11 +12,27 @@ public class SmartCam : MonoBehaviour {
     Animator animator;
     PlayerController player;
 
+    public bool Enabled { get; set; }
+
     public float height = 5;
     public float length = 10;
-    float follow_strength = 2;
+    float follow_strength = 4;
+
+
+
+    public static SmartCam Instance;
+
+
     // Use this for initialization
     void Start () {
+
+        if(Instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        Enabled = true;
 		if(target == null)
         {
             target = GameObject.FindGameObjectWithTag("Player").transform;
@@ -24,19 +40,24 @@ public class SmartCam : MonoBehaviour {
         }
         player = target.GetComponent<PlayerController>();
 	}
-	
-	// Update is called once per frame
-	void Update () {
-        Vector3 camTarget = target.position + (-target.forward * length) + (target.up * height);
-        float dist = Vector3.Distance(transform.position, camTarget);
-        transform.position = Vector3.Lerp(transform.position, camTarget, Time.deltaTime * dist * follow_strength);
-        float angle = Quaternion.Angle(transform.rotation, rotationPivot.rotation);
-        float rotation_strength = (Time.deltaTime * angle) * verticalStrength;
-        transform.rotation = Quaternion.Lerp(transform.rotation, rotationPivot.rotation, rotation_strength);
-        //ROTATE UP AND DOWN //transform.Rotate(Vector3.right, -Input.GetAxis("Mouse Y") * 0.5f);
 
-        if (player.shake_cam)
-            ShakeCamera();
+    // Update is called once per frame
+    void Update()
+    {
+        if (Enabled)
+        {
+            Vector3 camTarget = target.position + (-target.forward * length) + (target.up * height);
+            float dist = Vector3.Distance(transform.position, camTarget);
+            transform.position = Vector3.Lerp(transform.position, camTarget, Time.deltaTime * dist * follow_strength);
+            float angle = Quaternion.Angle(transform.rotation, rotationPivot.rotation);
+            float rotation_strength = (Time.deltaTime * angle) * verticalStrength;
+            transform.rotation = Quaternion.Lerp(transform.rotation, rotationPivot.rotation, rotation_strength);
+            //ROTATE UP AND DOWN //
+            transform.Rotate(Vector3.right, -Input.GetAxis("Mouse Y") * 0.25f);
+
+            if (player.shake_cam)
+                ShakeCamera();
+        }
     }
 
     public void ShakeCamera()

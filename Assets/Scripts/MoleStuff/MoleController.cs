@@ -8,20 +8,28 @@ public class MoleController : MonoBehaviour
 
     bool ready;
     float timer;
-    GameManager game_manager;
+    GameController game_manager;
 
     [SerializeField]
     Animator animator;
-    CapsuleCollider collider;
+    CapsuleCollider capsCollider;
+
+    [SerializeField]
+    GameObject normalBunny;
+    [SerializeField]
+    GameObject smashedBunny;
+
+    bool gotHit;
 
     // Use this for initialization
     void Start()
     {
         planet = GameObject.FindGameObjectWithTag("Planet").GetComponent<Planet>();
         ready = false;
-        game_manager = FindObjectOfType<GameManager>();
+        game_manager = FindObjectOfType<GameController>();
         timer = Random.Range(-game_manager.SurfaceTime, game_manager.SurfaceTime);
-        collider = GetComponent<CapsuleCollider>();
+        capsCollider = GetComponent<CapsuleCollider>();
+        gotHit = false;
     }
 
     void Update()
@@ -31,7 +39,7 @@ public class MoleController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.transform.tag == "Hammer")
+        if (!gotHit && other.transform.tag == "Hammer")
         {
             GotHit();
         }
@@ -39,25 +47,31 @@ public class MoleController : MonoBehaviour
 
     public void InitializeBunny()
     {
-        animator.ResetTrigger("Down");
-        animator.ResetTrigger("Smashed");
-        collider.enabled = true;
+        capsCollider.enabled = true;
+        smashedBunny.SetActive(false);
+        normalBunny.SetActive(true);
+        gotHit = false;
     }
 
     public void GotHit()
     {
         game_manager.AddHit();
         game_manager.IncreaseDifficulty();
+        capsCollider.enabled = false;
+        smashedBunny.SetActive(true);
+        normalBunny.SetActive(false);
         animator.SetTrigger("Smashed");
-        collider.enabled = false;
+        ready = true;
+        int random = Random.Range(5, 8);
+        AudioManager.instance.PlaySound(random);
+        timer = 0;
+        gotHit = true;
     }
 
     public void ResetBunny()
     {
         planet.PlaceObject(GetComponent<GravityBody>(), 0);
         timer = Random.Range(game_manager.SurfaceTime * 0.25f, game_manager.SurfaceTime + 0.05f);
-        animator.ResetTrigger("Down");
-        animator.ResetTrigger("Smashed");
         ready = false;
     }
 
@@ -66,7 +80,7 @@ public class MoleController : MonoBehaviour
         if (ready)
         {
             timer += Time.deltaTime;
-            if (timer >= game_manager.SurfaceTime)
+            if (timer >= game_manager.SurfaceTime + 0.5f)
             {
                 animator.SetTrigger("Down");
                 timer = 0;
@@ -77,6 +91,11 @@ public class MoleController : MonoBehaviour
     public void StartDigDown()
     {
         ready = true;
+    }
+
+    public void Escaped()
+    {
+        capsCollider.enabled = false;
     }
 
 }

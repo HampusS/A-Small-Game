@@ -3,8 +3,6 @@
 public class GravityBody : MonoBehaviour
 {
     public Planet source;
-    public float gravityMultiplier { get; set; }
-    public Vector3 gravityDirection { get; set; }
     Rigidbody rgdbody;
     bool grounded;
     RaycastHit hit;
@@ -17,12 +15,6 @@ public class GravityBody : MonoBehaviour
         rgdbody = GetComponent<Rigidbody>();
         rgdbody.useGravity = false;
         rgdbody.constraints = RigidbodyConstraints.FreezeRotation;
-        gravityMultiplier = 1;
-    }
-    
-    void FixedUpdate()
-    {
-        source.Attract(rgdbody, gravityMultiplier, gravityDirection);
     }
 
     public void SetPosition(Vector3 pos)

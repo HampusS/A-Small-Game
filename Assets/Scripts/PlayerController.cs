@@ -17,15 +17,14 @@ public class PlayerController : MonoBehaviour
     Vector3 moveAmount;
     Vector3 smoothMove;
     Rigidbody rgdBody;
-    GravityBody gravityBody;
-    RaycastHit hit;
+    RaycastHit hit, hammerHit;
     [SerializeField]
     float surface_align_speed;
     float height;
 
     bool stop_moving = false;
     [SerializeField]
-    float cooldown, swing_time;
+    float cooldown;
     float swing_timer;
     bool swinging_hammer;
     bool cooldown_swing;
@@ -36,74 +35,78 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField]
     Animator animator;
+    [SerializeField]
+    GameObject dust;
+    [SerializeField]
+    Transform ImpactPoint;
 
-    GameManager game_manager;
-    
+    GameController game_manager;
+
+    public bool Enabled { get; set; }
+
+
+
+    public static PlayerController Instance;
+
+
+
     void Start()
     {
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
         rgdBody = GetComponent<Rigidbody>();
-        gravityBody = GetComponent<GravityBody>();
         height = GetComponent<CapsuleCollider>().height;
         Cursor.lockState = CursorLockMode.Locked;
-        game_manager = FindObjectOfType<GameManager>();
+        game_manager = FindObjectOfType<GameController>();
+        Enabled = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!stop_moving)
+        if (Enabled)
         {
+            if (!stop_moving)
+            {
+                float angle = Input.GetAxis("Mouse X") * sensX;
+                transform.Rotate(Vector3.up, angle);
+                Vector3 strafe = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
+                if (strafe != Vector3.zero)
+                    animator.SetTrigger("Moving");
+                else
+                    animator.ResetTrigger("Moving");
 
-            float angle = Input.GetAxis("Mouse X") * Time.deltaTime;
-            transform.Rotate(Vector3.up, angle * 200);
-            Vector3 strafe = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
-            if (strafe != Vector3.zero)
-                animator.SetTrigger("Moving");
-            else
-                animator.ResetTrigger("Moving");
+                moveAmount = Vector3.SmoothDamp(moveAmount, strafe * speed, ref smoothMove, moveFloatiness);
 
-            strafe = new Vector3(strafe.x * 0.5f, 0, strafe.z);
-            if (strafe.z < 0)
-                strafe *= 0.25f;
-            moveAmount = Vector3.SmoothDamp(moveAmount, strafe * speed, ref smoothMove, moveFloatiness);
-            if (Input.GetKeyDown(KeyCode.Space))
-                rgdBody.AddForce(transform.up * 200);
+            }
+
+            SurfaceContactInfo();
+            SwingHammer();
         }
-
-        SurfaceContactInfo();
-        SwingHammer();
-    }
-
-    void FixedUpdate()
-    {
-        rgdBody.MovePosition(rgdBody.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+        transform.position += transform.TransformDirection(moveAmount) * Time.deltaTime;
     }
 
     void SurfaceContactInfo()
     {
         Vector3 raydirect = (planet.position - transform.position).normalized;
-        gravityBody.gravityDirection = -raydirect;
-
         Ray ray = new Ray(transform.position, raydirect);
         float rayLength = Vector3.Distance(transform.position, planet.position);
         if (Physics.Raycast(ray, out hit, rayLength, groundedMask))
         {
             float surfDist = Vector3.Distance(hit.point, transform.position);
-            if (surfDist < height * 0.6f)
-            {
-                transform.position += hit.normal * ((height * 0.5f) - surfDist);
-                rgdBody.velocity = Vector3.zero;
-                gravityBody.gravityDirection = hit.normal;
-            }
-            if (Input.GetKeyDown(KeyCode.T))
-            {
-                transform.position += hit.normal * ((height * 0.65f) - surfDist);
-                rgdBody.AddForce((transform.up - transform.forward * 1.5f).normalized * 500);
-            }
-        }
+            Vector3 offset = Vector3.zero;
+            if (surfDist > 1)
+                offset = hit.normal * ((height * 0.5f) - surfDist);
 
-        Quaternion targetRotation = Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation;
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * surface_align_speed);
+            transform.position = Vector3.Lerp(transform.position, transform.position + offset, Time.deltaTime * 6);
+
+            Quaternion targetRotation = Quaternion.FromToRotation(transform.up, hit.normal) * transform.rotation;
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * surface_align_speed);
+        }
     }
 
     void SwingHammer()
@@ -115,7 +118,6 @@ public class PlayerController : MonoBehaviour
             stop_moving = true;
             moveAmount = Vector3.zero;
             animator.SetTrigger("Swing");
-            animator.ResetTrigger("Idle");
         }
         else if (swinging_hammer)
         {
@@ -127,7 +129,6 @@ public class PlayerController : MonoBehaviour
                 stop_moving = false;
                 hammer.gameObject.SetActive(false);
                 animator.SetTrigger("Idle");
-                animator.ResetTrigger("Swing");
                 game_manager.PauseTimer = false;
             }
         }
@@ -136,6 +137,22 @@ public class PlayerController : MonoBehaviour
     public void HammerImpact()
     {
         shake_cam = true;
+        AudioManager.instance.PlaySound(1);
+
+        float rayLength = Vector3.Distance(ImpactPoint.position, planet.position);
+        Vector3 raydirect = (planet.position - ImpactPoint.position).normalized;
+        Ray ray = new Ray(ImpactPoint.position, raydirect);
+        Vector3 impactPos = Vector3.zero;
+        Quaternion impactRotation = Quaternion.identity;
+
+        if (Physics.Raycast(ray, out hammerHit, rayLength, groundedMask))
+        {
+            impactPos = hammerHit.point;
+            impactRotation = Quaternion.LookRotation(hammerHit.normal);
+        }
+
+        GameObject clone = Instantiate(dust, impactPos, impactRotation);
+        Destroy(clone, 3);
     }
 
 }

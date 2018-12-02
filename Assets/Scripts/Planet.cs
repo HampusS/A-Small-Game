@@ -37,7 +37,6 @@ public class Planet : MonoBehaviour
         DestroyImmediate(meshCollider);
         meshCollider = gameObject.AddComponent<MeshCollider>();
         mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 2000);
-
         foreach (GravityBody body in worldBodies)
         {
             PlaceObject(body, 0.5f);
